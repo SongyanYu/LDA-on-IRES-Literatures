@@ -38,6 +38,12 @@ sunny.top.terms<-sunny.topics%>%
   ungroup()%>%
   arrange(topic,-beta)
 
+top_topic_words<-sunny.top.terms%>%
+  group_by(topic)%>%
+  summarise(Top_topic_words=paste(term,collapse = ", "))
+
+#write.csv(top_topic_words,"R output/Top topic words.csv",row.names = FALSE)
+
 sunny.top.terms%>%
   mutate(term=reorder_within(term,beta,topic))%>%
   ggplot(aes(term,beta,fill=factor(topic)))+
@@ -158,7 +164,7 @@ topic.avg.prop%>%
                   show.legend = FALSE)+
   scale_color_gradient2(low="blue",high = "red",mid="grey",
                         name="Average change in prevalence")+
-  geom_text(aes(y=avg.prop.change-5),
+  geom_text(aes(y=avg.prop.change-1.6),
             size=5,
             hjust=0.,
             show.legend = FALSE)+
