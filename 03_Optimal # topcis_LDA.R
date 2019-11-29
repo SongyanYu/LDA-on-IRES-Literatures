@@ -5,7 +5,9 @@
 
 # NEED TO RUN "01_dtm preparation.R" to prepare dtm.
 
-# select the number of topics for LDA
+#---
+# 1. select the number of topics for LDA
+#---
 library(ldatuning)
 result<-FindTopicsNumber(
   leigh.dtm,
@@ -18,8 +20,10 @@ result<-FindTopicsNumber(
 
 FindTopicsNumber_plot(result)
 
+#---
 # Ten is selected as the optimal topic number
-# LDA modelling
+# 2. LDA modelling
+#---
 library(topicmodels)
 n.topic<-10
 sunny.lda<-LDA(leigh.dtm,k=n.topic,method = "Gibbs",control = list(seed=1))
@@ -45,7 +49,7 @@ sunny.top.terms%>%
   ggsave(paste0("Fig/topic-term probabilities_n",n.topic,".png"),width=18,height = 11)
 
 #---
-# topic similarity
+# 3. topic similarity
 #---
 library(reshape2)
 weight.matrix<-as.data.frame(acast(sunny.topics,topic~term))
@@ -93,5 +97,91 @@ similarity.df%>%
   xlab("NMDS1")+ylab("NMDS2")+
   theme_classic()+
   ggsave(filename = paste0("Fig/Topic similarity_n",n.topic,".png"),width = 8,height = 4)
+
+#---
+# 4. topic popularity
+#---
+
+text.df$year=papers.abs$Publication.year
+text.df$line<-as.character(text.df$line)
+
+topic.pop<-
+  sunny.documents%>%
+  left_join(.,text.df,by=c("document"="line"))%>%
+  group_by(year,topic)%>%
+  summarise(total.gamma=sum(gamma),n.doc=n())
+
+library(tibble)
+
+doc.year<-text.df%>%
+  group_by(year)%>%
+  summarise(n=n())
+
+# aggregate 1981-1994
+topic.pop.1981_1994<-topic.pop[c(1:80),]%>%
+  group_by(topic)%>%
+  summarise(gamma=sum(total.gamma),n=sum(n.doc),prop=gamma/n)%>%
+  add_column(year="1981-1994")%>%
+  dplyr::select(year,topic,prop)
+
+topic.pop.1995_2014<-topic.pop[-c(1:80),]%>%
+  group_by(year,topic)%>%
+  summarise(prop=total.gamma/n.doc)
+
+topic.pop.1995_2014$year<-as.character(topic.pop.1995_2014$year)
+topic.pop.all<-bind_rows(topic.pop.1981_1994,topic.pop.1995_2014)
+
+# plotting
+topic.name<-read.csv("data/Topic name.csv")
+topic.pop.all<-left_join(topic.pop.all,topic.name,by=c("topic"="Topic"))
+
+topic.avg.prop<-topic.pop.all%>%
+  group_by(topic,Topic.name)%>%
+  summarise(avg.prop.change=mean(diff(prop))*100,
+            se=sd(prop)/sqrt(n()))%>%
+  arrange(avg.prop.change)%>%
+  mutate(group=ifelse(avg.prop.change>0.1,"Hot",ifelse(avg.prop.change<(-0.1),"Cold","Neutral")))
+
+# average change in prevalence (figure)
+topic.avg.prop%>%
+  ggplot(aes(x=factor(topic,levels=dput(as.character(topic))),
+             y=avg.prop.change,
+             color=avg.prop.change,
+             label=Topic.name))+
+  geom_hline(yintercept = 0,
+             linetype="dotted",
+             size=1.5)+
+  geom_point(show.legend = FALSE)+
+  geom_pointrange(aes(ymin=avg.prop.change-se*100,
+                      ymax=avg.prop.change+se*100),
+                  fatten=5,size=1.2,
+                  show.legend = FALSE)+
+  scale_color_gradient2(low="blue",high = "red",mid="grey",
+                        name="Average change in prevalence")+
+  geom_text(aes(y=avg.prop.change-5),
+            size=5,
+            hjust=0.,
+            show.legend = FALSE)+
+  coord_flip()+
+  ylab("Average change in prevalence (%)")+
+  theme_classic()+
+  theme(axis.line.y = element_blank(),axis.ticks.y = element_blank(),
+        axis.text.y = element_blank(),axis.title.y = element_blank())+
+  scale_y_continuous(position = "right")+
+  ggsave(filename = paste0("Fig/Avg topic prevalence_n",n.topic,".png"))
+
+
+# topic trend over time (figure)
+topic.pop.all%>%
+  left_join(topic.avg.prop[,c(1,3,5)],by="topic")%>%
+  ggplot(aes(x=year,y=prop*100,group=Topic.name))+
+  geom_line(aes(color=avg.prop.change),size=1.2)+
+  scale_color_gradient2(low="blue",high = "red",mid = "grey",
+                        name="Average change in prevalence")+
+  facet_grid(factor(group,levels =c("Hot","Neutral","Cold"))~.)+
+  theme_classic()+
+  theme(panel.grid.major.y=element_line(linetype = "dotted",color="grey"))+
+  xlab("")+ylab("Topic prevalence (%)")+
+  ggsave(filename = paste0("Fig/Topic trend over time_n",n.topic,".png"))
 
 
