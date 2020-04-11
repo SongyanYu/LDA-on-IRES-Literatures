@@ -16,6 +16,12 @@ doc.info<-papers.abs[,c(3,4,5)]
 doc.info$document<-c(1:nrow(doc.info))
 doc.info$document<-as.character(doc.info$document)
 
+#doc.info$Abstract<-gsub(pattern = "\uA9.*",x=doc.info$Abstract,replacement = "") # remove "copyright" information
+#doc.info$Abstract<-gsub(pattern = "(Crown Copyright|Copyright).*",x=doc.info$Abstract,replacement = "") # same as above
+#doc.info$Abstract<-gsub(pattern = "\\(C\\) \\d.*",x=doc.info$Abstract,replacement = "") # same as above
+#doc.info$Abstract<-gsub(pattern = "\\[No abstract available\\]",x=doc.info$Abstract, replacement = "") # remove "no abstract"
+#doc.info$Abstract<-gsub(pattern = "from Authors",x=doc.info$Abstract, replacement = "") # remove duplicate abstract
+
 text<-paste(papers.abs$Title,papers.abs$Abstract)
 library(dplyr)
 text.df<-tibble(line=1:length(text),text)
@@ -44,7 +50,7 @@ text.1.gram<-text.df%>%
   count(line,word)%>%
   filter(n>1)
 
-# remove words occurring in >300 documents
+# remove words occurring in >203 documents
 common.word<-text.1.gram%>%
   group_by(word)%>%
   summarise(n=n())%>%
