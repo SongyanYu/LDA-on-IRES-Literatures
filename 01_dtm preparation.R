@@ -41,14 +41,14 @@ library(SnowballC) # stem word
 #unigram
 text.1.gram<-text.df%>%
   unnest_tokens(word,text)%>%
-  anti_join(stop_words)%>%
-  filter(is.na(as.numeric(word)))%>%
-  filter(!word %in% publisher.word)%>%
-  mutate(word=wordStem(word))%>%
-  filter(nchar(word)>2)%>%
-  filter(!grepl("[[:digit:]]",word))%>%
+  anti_join(stop_words)%>%                # remove stop words (e.g. and, with, etc.)
+  filter(is.na(as.numeric(word)))%>%      # remove numbers
+  filter(!word %in% publisher.word)%>%    # remove publisher words
+  mutate(word=wordStem(word))%>%          # stem words
+  filter(nchar(word)>2)%>%                # remove words with less than 3 letters (e.g. in)
+  filter(!grepl("[[:digit:]]",word))%>%   # remove words with number in it (e.g. NH4)
   count(line,word)%>%
-  filter(n>1)
+  filter(n>1)          # remove words that only be mentioned once in a paper's title and abstract.
 
 # remove words occurring in >203 documents
 common.word<-text.1.gram%>%
@@ -75,7 +75,7 @@ text.1.gram.short%>%
 
 length.text<-text.1.gram%>%
   group_by(line)%>%
-  summarise(n=n())
+  summarise(n=sum(n))
 
 #bi-gram
 library(tidyr)
@@ -84,13 +84,13 @@ text.2.gram<-text.df%>%
   separate(word,c("word1","word2"),sep=" ")%>%
   filter(!word1 %in% stop_words$word)%>%
   filter(!word2 %in% stop_words$word)%>%
-  filter(!word1 %in% common.word$word)%>%
-  filter(!word2 %in% common.word$word)%>%
   filter(is.na(as.numeric(word1)))%>%
   filter(is.na(as.numeric(word2)))%>%
   filter(!word1 %in% publisher.word)%>%
   filter(!word2 %in% publisher.word)%>%
   mutate(word1=wordStem(word1),word2=wordStem(word2))%>%
+#  filter(!word1 %in% common.word$word)%>%
+#  filter(!word2 %in% common.word$word)%>%
   filter(nchar(word1)>2)%>%
   filter(nchar(word2)>2)%>%
   filter(!grepl("[[:digit:]]",word1))%>%
@@ -123,10 +123,10 @@ text.3.gram<-text.df%>%
   filter(!word1 %in% publisher.word)%>%
   filter(!word2 %in% publisher.word)%>%
   filter(!word3 %in% publisher.word)%>%
-  filter(!word1 %in% common.word$word)%>%
-  filter(!word2 %in% common.word$word)%>%
-  filter(!word3 %in% common.word$word)%>%
   mutate(word1=wordStem(word1),word2=wordStem(word2),word3=wordStem(word3))%>%
+#  filter(!word1 %in% common.word$word)%>%
+#  filter(!word2 %in% common.word$word)%>%
+#  filter(!word3 %in% common.word$word)%>%
   filter(nchar(word1)>2)%>%
   filter(nchar(word2)>2)%>%
   filter(nchar(word3)>2)%>%
