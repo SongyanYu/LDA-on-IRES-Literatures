@@ -5,12 +5,11 @@
 
 # NEED TO RUN "01_dtm preparation.R" to prepare dtm.
 
-
 # LDA modelling
 library(topicmodels)
 
 n.topic<-4
-leigh.lda<-LDA(leigh.dtm,k=n.topic,method = "Gibbs",control = list(seed=5))  # seed 5 is the most similar results to Leigh et al. 2016
+leigh.lda<-LDA(leigh.dtm,k=n.topic,method = "Gibbs",control = list(seed=1)) 
 
 # word-topic probabilities
 leigh.topics<-tidy(leigh.lda,matrix="beta")
@@ -22,6 +21,12 @@ leigh.top.terms<-leigh.topics%>%
   ungroup()%>%
   arrange(topic,-beta)
 
+top_topic_words<-leigh.top.terms%>%
+  group_by(topic)%>%
+  summarise(Top_topic_words=paste(term,collapse = ", "))
+
+write.csv(top_topic_words,"../../R output/Top topic words_n4.csv",row.names = FALSE)
+
 leigh.top.terms%>%
   mutate(term=reorder_within(term,beta,topic))%>%
   ggplot(aes(term,beta,fill=factor(topic)))+
@@ -30,7 +35,7 @@ leigh.top.terms%>%
   coord_flip()+
   scale_x_reordered()+
   labs(y="probability")+
-  ggsave(paste0("Fig/topic-term probabilities_n",n.topic,".png"),width=18,height = 11)
+  ggsave(paste0("../../Fig/topic-term probabilities_n",n.topic,".png"),width=18,height = 11)
 
 #---
 # topic similarity
@@ -80,7 +85,7 @@ similarity.df%>%
   scale_size(range = c(5,15),name=paste0("Frequency of dominance","\n","              (articles)"))+
   xlab("NMDS1")+ylab("NMDS2")+
   theme_classic()+
-  ggsave(filename = paste0("Fig/Topic similarity_n",n.topic,".png"),width = 8,height = 4)
+  ggsave(filename = paste0("../../Fig/Topic similarity_n",n.topic,".png"),width = 8,height = 4)
 
 
 
