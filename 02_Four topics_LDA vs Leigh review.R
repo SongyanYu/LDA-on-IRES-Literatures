@@ -40,29 +40,29 @@ leigh.top.terms%>%
 #---
 # topic similarity
 #---
-library(reshape2)
-weight.matrix<-as.data.frame(acast(leigh.topics,topic~term))
+#library(reshape2)
+#weight.matrix<-as.data.frame(acast(leigh.topics,topic~term))
 
 # Bray-Curtis distance (dissimilarity)
-library(vegan)
-topic.dis<-vegdist(weight.matrix,method = "bray")
+#library(vegan)
+#topic.dis<-vegdist(weight.matrix,method = "bray")
 
 # non-metric multidimentional scaling
-library(MASS)
-fits<-isoMDS(topic.dis,k=2)
+#library(MASS)
+#fits<-isoMDS(topic.dis,k=2)
 
-library(ggplot2)
-similarity.df<-as.data.frame(fits$points)
-similarity.df$topic<-c(1:n.topic)
+#library(ggplot2)
+#similarity.df<-as.data.frame(fits$points)
+#similarity.df$topic<-c(1:n.topic)
 
 # document-topic probabilities
-leigh.documents<-tidy(leigh.lda,matrix="gamma")
+#leigh.documents<-tidy(leigh.lda,matrix="gamma")
 
-relevant.docs<-leigh.documents%>%
-  group_by(topic)%>%
-  top_n(10,gamma)%>%
-  ungroup()%>%
-  arrange(topic,-gamma)
+#relevant.docs<-leigh.documents%>%
+#  group_by(topic)%>%
+#  top_n(10,gamma)%>%
+#  ungroup()%>%
+#  arrange(topic,-gamma)
 
 #relevant.docs<-relevant.docs%>%
 #  left_join(doc.info,by="document")
@@ -71,21 +71,21 @@ relevant.docs<-leigh.documents%>%
 #          file = paste0("R output/topic-documents_n",n.topic,".csv"),
 #          row.names = FALSE)
 
-topic.size<-leigh.documents%>%
-  group_by(document)%>%
-  summarise(dom.topic=match(max(gamma),gamma))%>%
-  group_by(dom.topic)%>%
-  summarise(n=n())
+#topic.size<-leigh.documents%>%
+#  group_by(document)%>%
+#  summarise(dom.topic=match(max(gamma),gamma))%>%
+#  group_by(dom.topic)%>%
+#  summarise(n=n())
 
-similarity.df%>%
-  left_join(topic.size,by=c("topic"="dom.topic"))%>%
-  ggplot(aes(x=V1,y=V2,size=n))+
-  geom_point(alpha=0.5,color="black",shape=21)+
-  geom_text(aes(label=topic),size=4)+
-  scale_size(range = c(5,15),name=paste0("Frequency of dominance","\n","              (articles)"))+
-  xlab("NMDS1")+ylab("NMDS2")+
-  theme_classic()+
-  ggsave(filename = paste0("../../Fig/Topic similarity_n",n.topic,".png"),width = 8,height = 4)
+#similarity.df%>%
+#  left_join(topic.size,by=c("topic"="dom.topic"))%>%
+#  ggplot(aes(x=V1,y=V2,size=n))+
+#  geom_point(alpha=0.5,color="black",shape=21)+
+#  geom_text(aes(label=topic),size=4)+
+#  scale_size(range = c(5,15),name=paste0("Frequency of dominance","\n","              (articles)"))+
+#  xlab("NMDS1")+ylab("NMDS2")+
+#  theme_classic()+
+#  ggsave(filename = paste0("../../Fig/Topic similarity_n",n.topic,".png"),width = 8,height = 4)
 
 
 
