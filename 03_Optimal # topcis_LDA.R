@@ -21,12 +21,55 @@ result<-FindTopicsNumber(
 FindTopicsNumber_plot(result)
 
 #---
-# Ten is selected as the optimal topic number
+# Nine is selected as the optimal topic number
 # 2. LDA modelling
 #---
 library(topicmodels)
-n.topic<-10
+n.topic<-9
 sunny.lda<-LDA(leigh.dtm,k=n.topic,method = "Gibbs",control = list(seed=1))
+
+#---
+# 3. document composition between the four topics and nine topics
+#---
+# document-topic probabilities
+sunny.documents<-tidy(sunny.lda,matrix="gamma")
+
+sunny.doc.membership<-sunny.documents%>%
+  group_by(document)%>%
+  summarise(dom.topic=match(max(gamma),gamma))
+
+leigh.doc.membership<-strsplit(papers.abs$Associated.search.es.,", ")
+fish.doc<-grep("Fish",leigh.doc.membership)
+assessment.doc<-grep("Assessment",leigh.doc.membership)
+biogeochemistry.doc<-grep("Biogeochemistry",leigh.doc.membership)
+invertebrate.doc<-grep("Invertebrate",leigh.doc.membership)
+
+# membership interaction between 4 and 9 topics.
+topics_in_fish<-sunny.doc.membership$dom.topic[as.numeric(sunny.doc.membership$document) %in% fish.doc]
+topics_in_assessment<-sunny.doc.membership$dom.topic[as.numeric(sunny.doc.membership$document) %in% assessment.doc]
+topics_in_invertebrate<-sunny.doc.membership$dom.topic[as.numeric(sunny.doc.membership$document) %in% invertebrate.doc]
+topics_in_biogeochemistry<-sunny.doc.membership$dom.topic[as.numeric(sunny.doc.membership$document) %in% biogeochemistry.doc]
+
+topics_in_fish.df<-data.frame(table(topics_in_fish),topic = "Fish")%>%
+  rename(New_topic = topics_in_fish)
+topics_in_assessment.df<-data.frame(table(topics_in_assessment),topic = "Assessment")%>%
+  rename(New_topic = topics_in_assessment)
+topics_in_invertebrate.df<-data.frame(table(topics_in_invertebrate),topic = "Invertebrate")%>%
+  rename(New_topic = topics_in_invertebrate)
+topics_in_biogeochemistry.df<-data.frame(table(topics_in_biogeochemistry), topic = "Biogeochemistry")%>%
+  rename(New_topic = topics_in_biogeochemistry)
+
+rbind(topics_in_fish.df,
+      topics_in_assessment.df,
+      topics_in_biogeochemistry.df,
+      topics_in_invertebrate.df)%>%
+  ggplot()+
+  geom_bar(aes(fill = New_topic, x = topic, y = Freq),
+           position = "stack",stat = "identity")+
+  ylab("Number of articles")+
+  xlab("Topics in Leigh et al. 2016")+
+  theme_bw()+
+  scale_fill_brewer(palette = "Set1")
 
 # word-topic probabilities
 sunny.topics<-tidy(sunny.lda,matrix="beta")
@@ -42,7 +85,7 @@ top_topic_words<-sunny.top.terms%>%
   group_by(topic)%>%
   summarise(Top_topic_words=paste(term,collapse = ", "))
 
-#write.csv(top_topic_words,"R output/Top topic words.csv",row.names = FALSE)
+write.csv(top_topic_words,"../../R output/Top topic words_n9.csv",row.names = FALSE)
 
 sunny.top.terms%>%
   mutate(term=reorder_within(term,beta,topic))%>%
@@ -52,7 +95,7 @@ sunny.top.terms%>%
   coord_flip()+
   scale_x_reordered()+
   labs(y="probability")+
-  ggsave(paste0("Fig/topic-term probabilities_n",n.topic,".png"),width=18,height = 11)
+  ggsave(paste0("../../Fig/topic-term probabilities_n",n.topic,".png"),width=18,height = 11)
 
 #---
 # 3. topic similarity
