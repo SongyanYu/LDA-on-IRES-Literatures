@@ -1,13 +1,13 @@
 #---
 # Prepare dtm for LDA modelling
+# Author: Songyan Yu
+# Date updated: 23/03/2021
 #---
-
-setwd("../../")
 
 #---
 # 1. read in Leigh literatures
 #---
-papers<-read.csv("data/Literatures in Leigh et al 2016.csv",skip = 1)
+papers<-read.csv("../../data/Literatures in Leigh et al 2016.csv",skip = 1)
 
 # remove articles without abstract
 papers.abs<-papers[!(papers$Abstract==""),]
@@ -59,11 +59,11 @@ common.word<-text.1.gram%>%
 text.1.gram.short<-text.1.gram%>%
   anti_join(common.word,by="word")
 
-# remove words occurring in <6 documents
+# remove words occurring in < 8 documents
 rare.word<-text.1.gram.short%>%
   group_by(word)%>%
   summarise(n=n())%>%
-  filter(n<6)
+  filter(n<8)
 
 text.1.gram.short<-text.1.gram.short%>%
   anti_join(rare.word,by="word")
