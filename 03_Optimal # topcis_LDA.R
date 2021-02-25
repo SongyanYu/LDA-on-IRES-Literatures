@@ -76,6 +76,9 @@ write.csv(relevant.docs,
 #---
 # 4. document composition between the four topics and nine topics
 #---
+
+new.topic.name<-read.csv("../../data/Topic name.csv")
+
 # document-topic probabilities
 sunny.documents<-tidy(sunny.lda,matrix="gamma")
 
@@ -108,15 +111,19 @@ rbind(topics_in_fish.df,
       topics_in_assessment.df,
       topics_in_biogeochemistry.df,
       topics_in_invertebrate.df)%>%
+  mutate(New_topic = factor(New_topic, labels = new.topic.name$Topic.name))%>%
   ggplot()+
   geom_bar(aes(fill = New_topic, x = topic, y = Freq),
            position = "stack",stat = "identity")+
   ylab("Number of articles")+
   xlab("Topics in Leigh et al. 2016")+
+  labs(fill = "New topics for LDA modelling")+
   theme_bw()+
+  theme(legend.position = "top")+
+  guides(fill=guide_legend(nrow=5, byrow=TRUE))+
   scale_fill_brewer(palette = "Set3")+
   ggsave(filename = "../../Fig/topic composition_4 vs 10 topics.png",
-         width = 6.38, height = 3.7)
+         width = 9.32, height = 7)
 
 
 #---
