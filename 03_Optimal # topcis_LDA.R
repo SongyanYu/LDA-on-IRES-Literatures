@@ -12,7 +12,7 @@ library(ldatuning)
 result<-FindTopicsNumber(
   leigh.dtm,
   topics = seq(from=2,to=50,by=1),
-  metrics = c("Griffiths2004","CaoJuan2009","Arun2010","Deveaud2014"),
+  metrics = c("Deveaud2014"),
   method = "Gibbs",
   mc.cores = 3,
   verbose = TRUE
@@ -25,11 +25,56 @@ FindTopicsNumber_plot(result)
 # 2. LDA modelling
 #---
 library(topicmodels)
-n.topic<-9
+n.topic<-10
 sunny.lda<-LDA(leigh.dtm,k=n.topic,method = "Gibbs",control = list(seed=1))
 
 #---
-# 3. document composition between the four topics and nine topics
+# 3. identify topic names
+#---
+#word-topic probabilities
+sunny.topics<-tidy(sunny.lda,matrix="beta")
+
+library(ggplot2)
+sunny.top.terms<-sunny.topics%>%
+  group_by(topic)%>%
+  top_n(20,beta)%>%
+  ungroup()%>%
+  arrange(topic,-beta)
+
+top_topic_words<-sunny.top.terms%>%
+  group_by(topic)%>%
+  summarise(Top_topic_words=paste(term,collapse = ", "))
+
+write.csv(top_topic_words,paste0("../../R output/Top topic words_n",n.topic,".csv"),row.names = FALSE)
+
+#sunny.top.terms%>%
+#  mutate(term=reorder_within(term,beta,topic))%>%
+#  ggplot(aes(term,beta,fill=factor(topic)))+
+#  geom_col(show.legend = FALSE)+
+#  facet_wrap(~topic,scales = "free")+
+#  coord_flip()+
+#  scale_x_reordered()+
+#  labs(y="probability")+
+#  ggsave(paste0("../../Fig/topic-term probabilities_n",n.topic,".png"),width=18,height = 11)
+
+# document-topic probabilities
+sunny.documents<-tidy(sunny.lda,matrix="gamma")
+
+relevant.docs<-sunny.documents%>%
+  group_by(topic)%>%
+  top_n(10,gamma)%>%
+  ungroup()%>%
+  arrange(topic,-gamma)
+
+relevant.docs<-relevant.docs%>%
+  left_join(doc.info,by="document")
+
+write.csv(relevant.docs,
+          file = paste0("../../R output/topic-documents_n",n.topic,".csv"),
+          row.names = FALSE)
+
+#---
+# 4. document composition between the four topics and nine topics
 #---
 # document-topic probabilities
 sunny.documents<-tidy(sunny.lda,matrix="gamma")
@@ -44,7 +89,7 @@ assessment.doc<-grep("Assessment",leigh.doc.membership)
 biogeochemistry.doc<-grep("Biogeochemistry",leigh.doc.membership)
 invertebrate.doc<-grep("Invertebrate",leigh.doc.membership)
 
-# membership interaction between 4 and 9 topics.
+# membership interaction between 4 and 10 topics.
 topics_in_fish<-sunny.doc.membership$dom.topic[as.numeric(sunny.doc.membership$document) %in% fish.doc]
 topics_in_assessment<-sunny.doc.membership$dom.topic[as.numeric(sunny.doc.membership$document) %in% assessment.doc]
 topics_in_invertebrate<-sunny.doc.membership$dom.topic[as.numeric(sunny.doc.membership$document) %in% invertebrate.doc]
@@ -69,33 +114,10 @@ rbind(topics_in_fish.df,
   ylab("Number of articles")+
   xlab("Topics in Leigh et al. 2016")+
   theme_bw()+
-  scale_fill_brewer(palette = "Set1")
+  scale_fill_brewer(palette = "Set3")+
+  ggsave(filename = "../../Fig/topic composition_4 vs 10 topics.png",
+         width = 6.38, height = 3.7)
 
-# word-topic probabilities
-sunny.topics<-tidy(sunny.lda,matrix="beta")
-
-library(ggplot2)
-sunny.top.terms<-sunny.topics%>%
-  group_by(topic)%>%
-  top_n(20,beta)%>%
-  ungroup()%>%
-  arrange(topic,-beta)
-
-top_topic_words<-sunny.top.terms%>%
-  group_by(topic)%>%
-  summarise(Top_topic_words=paste(term,collapse = ", "))
-
-write.csv(top_topic_words,"../../R output/Top topic words_n9.csv",row.names = FALSE)
-
-sunny.top.terms%>%
-  mutate(term=reorder_within(term,beta,topic))%>%
-  ggplot(aes(term,beta,fill=factor(topic)))+
-  geom_col(show.legend = FALSE)+
-  facet_wrap(~topic,scales = "free")+
-  coord_flip()+
-  scale_x_reordered()+
-  labs(y="probability")+
-  ggsave(paste0("../../Fig/topic-term probabilities_n",n.topic,".png"),width=18,height = 11)
 
 #---
 # 3. topic similarity
@@ -117,19 +139,6 @@ similarity.df$topic<-c(1:n.topic)
 
 # document-topic probabilities
 sunny.documents<-tidy(sunny.lda,matrix="gamma")
-
-relevant.docs<-sunny.documents%>%
-  group_by(topic)%>%
-  top_n(10,gamma)%>%
-  ungroup()%>%
-  arrange(topic,-gamma)
-
-#relevant.docs<-relevant.docs%>%
-#  left_join(doc.info,by="document")
-
-#write.csv(relevant.docs,
-#          file = paste0("R output/topic-documents_n",n.topic,".csv"),
-#          row.names = FALSE)
 
 topic.size<-sunny.documents%>%
   group_by(document)%>%
