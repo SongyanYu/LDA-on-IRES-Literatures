@@ -15,8 +15,7 @@ result<-FindTopicsNumber(
   metrics = c("Deveaud2014"),
   method = "Gibbs",
   mc.cores = 3,
-  verbose = TRUE
-)
+  verbose = TRUE)
 
 FindTopicsNumber_plot(result)
 
