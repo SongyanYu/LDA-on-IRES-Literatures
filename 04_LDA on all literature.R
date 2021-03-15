@@ -88,7 +88,7 @@ common.word<-text.1.gram%>%
   summarise(n=n())%>%
   filter(n>300) #was 300
 
-text.1.gram.short<-text.1.gram%>%
+text.1.gram.short<-text.1.gram%>%              # If there is an error, rerun this two lines again.
   anti_join(common.word,by="word")
 
 # remove words occurring in <6 documents
@@ -287,9 +287,9 @@ n.topic<-10
     left_join(all.doc,by="document")
   
   
-  write.csv(relevant.docs,
-            file = paste0("../../R output/topic-documents_n",n.topic,"_all-literature.csv"),
-            row.names = FALSE)
+  #write.csv(relevant.docs,
+  #          file = paste0("../../R output/topic-documents_n",n.topic,"_all-literature.csv"),
+  #          row.names = FALSE)
   
   topic.size<-ari.documents%>%
     group_by(document)%>%
@@ -443,4 +443,57 @@ topic.pop.all%>%
   theme(panel.grid.major.y=element_line(linetype = "dotted",color="grey"))+
   xlab("")+ylab("Topic prevalence (%)")+
   ggsave(filename = paste0("../../Fig/Topic trend over time_n",n.topic,".png"),width = 9.32,height = 5.73)
+
+#---
+# topic generality/specificity
+#---
+
+topic.weight<-ari.documents.cast%>%
+  rename(tp01 = "1", tp02 = "2",tp03 = "3", tp04 = "4", tp05 = "5", 
+         tp06 = "6", tp07 = "7", tp08 = "8", tp09 = "9", tp10 = "10")%>%
+  mutate(max = pmax(tp01, tp02, tp03, tp04, tp05, tp06, tp07, tp08, tp09, tp10),
+         slec01 = ifelse(tp01 < max, 0, 1), slec02 = ifelse(tp02 < max, 0, 1),
+         slec03 = ifelse(tp03 < max, 0, 1), slec04 = ifelse(tp04 < max, 0, 1),
+         slec05 = ifelse(tp05 < max, 0, 1), slec06 = ifelse(tp06 < max, 0, 1),
+         slec07 = ifelse(tp07 < max, 0, 1), slec08 = ifelse(tp08 < max, 0, 1),
+         slec09 = ifelse(tp09 < max, 0, 1), slec10 = ifelse(tp10 < max, 0, 1))%>%
+  transmute(tp01_slec_weight = mean(tp01[slec01 ==1]),
+            tp02_slec_weight = mean(tp02[slec02 ==1]),
+            tp03_slec_weight = mean(tp03[slec03 ==1]),
+            tp04_slec_weight = mean(tp04[slec04 ==1]),
+            tp05_slec_weight = mean(tp05[slec05 ==1]),
+            tp06_slec_weight = mean(tp06[slec06 ==1]),
+            tp07_slec_weight = mean(tp07[slec07 ==1]),
+            tp08_slec_weight = mean(tp08[slec08 ==1]),
+            tp09_slec_weight = mean(tp09[slec09 ==1]),
+            tp10_slec_weight = mean(tp10[slec10 ==1]),
+            tp01_unslec_weight = mean(tp01[slec01 ==0]),
+            tp02_unslec_weight = mean(tp02[slec02 ==0]),
+            tp03_unslec_weight = mean(tp03[slec03 ==0]),
+            tp04_unslec_weight = mean(tp04[slec04 ==0]),
+            tp05_unslec_weight = mean(tp05[slec05 ==0]),
+            tp06_unslec_weight = mean(tp06[slec06 ==0]),
+            tp07_unslec_weight = mean(tp07[slec07 ==0]),
+            tp08_unslec_weight = mean(tp08[slec08 ==0]),
+            tp09_unslec_weight = mean(tp09[slec09 ==0]),
+            tp10_unslec_weight = mean(tp10[slec10 ==0]))
+
+library(ggplot2)
+library(stringr)
+data.frame(slec.weight = colMeans(topic.weight)[1:10],
+           unslec.weight = colMeans(topic.weight[11:20]))%>%
+  mutate(tp_name = topic.name$Topic)%>%
+  ggplot(aes(x = unslec.weight, y = slec.weight))+
+  geom_point(shape = 10,size = 10)+
+  geom_text(aes(label = str_wrap(tp_name,15)),position = position_jitter(),vjust = 2.5,size = 4)+
+  annotate(geom = "text", x = 0.07, y = 0.327, label = "Specific topics",size = 5,fontface = "italic")+
+  annotate(geom = "text", x = 0.0825, y = 0.28, label = "General topics",size = 5,fontface = "italic")+
+  xlab("Mean weight (unselected articles)")+
+  ylab("Mean weight (selected articles)")+
+  theme_bw()+
+  ylim(c(0.265, 0.35))+
+  xlim(c(0.068, 0.086))+
+  ggsave(filename = "../../Fig/Topic generality.png",width = 7,height = 5)
+
+
 
