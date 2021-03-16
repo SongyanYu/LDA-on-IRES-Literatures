@@ -191,8 +191,8 @@ colnames(text.2.gram.short)[2]<-"term"
 colnames(text.3.gram.short)[2]<-"term"
 
 all.term<-rbind(text.1.gram.short,
-                  text.2.gram.short,
-                  text.3.gram.short)
+                text.2.gram.short,
+                text.3.gram.short)
 
 length(unique(all.term$term))
 sum(all.term$n)
@@ -494,6 +494,22 @@ data.frame(slec.weight = colMeans(topic.weight)[1:10],
   ylim(c(0.265, 0.35))+
   xlim(c(0.068, 0.086))+
   ggsave(filename = "../../Fig/Topic generality.png",width = 7,height = 5)
+
+
+#---
+# research gap analysis
+#---
+library(vegan)
+article.weight.matrix<-ari.documents%>%
+  pivot_wider(id_cols = topic, names_from = document, values_from = gamma)%>%
+  dplyr::select(-topic)
+  
+article.topic.dis<-vegdist(article.weight.matrix,method = "bray")
+
+gap.dist<-topic.dis * article.topic.dis
+
+# then copy the gap.dist to an excel file for visualisation
+
 
 
 
