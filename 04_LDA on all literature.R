@@ -417,13 +417,13 @@ topic.avg.prop%>%
                   fatten=5,size=1.2,
                   show.legend = FALSE)+
   scale_color_gradient2(low="blue",high = "red",mid="grey",
-                        name="Average change in prevalence")+
+                        name="Average change in popularity")+
   geom_text(aes(y=avg.prop.change-5),
             size=5,
             hjust=0.,
             show.legend = FALSE)+
   coord_flip()+
-  ylab("Average change in prevalence (%)")+
+  ylab("Average change in popularity (%)")+
   theme_classic()+
   theme(axis.line.y = element_blank(),axis.ticks.y = element_blank(),
         axis.text.y = element_blank(),axis.title.y = element_blank())+
@@ -480,12 +480,16 @@ topic.weight<-ari.documents.cast%>%
 
 library(ggplot2)
 library(stringr)
+
+topic.name<-read.csv("../../data/Topic names_all literature_topic-generality.csv")
+
 data.frame(slec.weight = colMeans(topic.weight)[1:10],
            unslec.weight = colMeans(topic.weight[11:20]))%>%
-  mutate(tp_name = topic.name$Topic)%>%
+  mutate(tp_name = topic.name$Topic.name)%>%
   ggplot(aes(x = unslec.weight, y = slec.weight))+
-  geom_point(shape = 10,size = 10)+
-  geom_text(aes(label = str_wrap(tp_name,15)),position = position_jitter(),vjust = 2.5,size = 4)+
+#  geom_point(shape = 10,size = 10)+
+  geom_text(aes(label = str_wrap(tp_name,15)),position = position_jitter())+
+#  geom_text(aes(label = str_wrap(tp_name,15)),position = position_jitter(),vjust = 2.5,size = 4)+
   annotate(geom = "text", x = 0.07, y = 0.327, label = "Specific topics",size = 5,fontface = "italic")+
   annotate(geom = "text", x = 0.0825, y = 0.28, label = "General topics",size = 5,fontface = "italic")+
   xlab("Mean weight (unselected articles)")+
@@ -494,6 +498,22 @@ data.frame(slec.weight = colMeans(topic.weight)[1:10],
   ylim(c(0.265, 0.35))+
   xlim(c(0.068, 0.086))+
   ggsave(filename = "../../Fig/Topic generality.png",width = 7,height = 5)
+
+data.frame(slec.weight = colMeans(topic.weight)[1:10],
+           unslec.weight = colMeans(topic.weight[11:20]))%>%
+  mutate(tp_name = topic.name$Topic.name)%>%
+  ggplot(aes(x = unslec.weight, y = slec.weight))+
+  #  geom_point(shape = 10,size = 10)+
+  geom_text(aes(label = str_wrap(tp_name,15)),position = position_jitter())+
+  #  geom_text(aes(label = str_wrap(tp_name,15)),position = position_jitter(),vjust = 2.5,size = 4)+
+  annotate(geom = "text", x = 0.07, y = 0.327, label = "Specific topics",size = 5,fontface = "italic")+
+  annotate(geom = "text", x = 0.0825, y = 0.28, label = "General topics",size = 5,fontface = "italic")+
+  xlab("Mean weight (unselected articles)")+
+  ylab("Mean weight (selected articles)")+
+  theme_bw()+
+  ylim(c(0.265, 0.35))+
+  xlim(c(0.068, 0.086))+
+  ggsave(filename = "../../Fig/Topic generality_inlet.png",width = 16,height = 8)
 
 
 #---
