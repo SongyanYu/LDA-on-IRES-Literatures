@@ -212,7 +212,8 @@ result<-FindTopicsNumber(
   metrics = c("Deveaud2014"),
   method = "Gibbs",
   mc.cores = 3,
-  verbose = TRUE)
+  verbose = TRUE,
+  control = list(seed = seed.findtopicnumber[1]))
 
 #png(filename = "Fig/ARI authors/Find topic number_v4.png")
 FindTopicsNumber_plot(result)  # n=10 topics looks  optimal.
