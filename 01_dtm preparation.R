@@ -5,7 +5,7 @@
 #---
 
 #---
-# 1. read in Leigh literatures
+# 1. read in Leigh literature
 #---
 papers<-read.csv("../../data/Literatures in Leigh et al 2016.csv",skip = 1)
 

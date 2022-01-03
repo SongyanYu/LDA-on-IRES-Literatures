@@ -20,7 +20,7 @@ result<-FindTopicsNumber(
 FindTopicsNumber_plot(result)
 
 #---
-# Nine is selected as the optimal topic number
+# Ten is selected as the optimal topic number
 # 2. LDA modelling
 #---
 library(topicmodels)
@@ -73,7 +73,7 @@ write.csv(relevant.docs,
           row.names = FALSE)
 
 #---
-# 4. document composition between the four topics and nine topics
+# 4. document composition between the four and ten topics
 #---
 
 new.topic.name<-read.csv("../../data/Topic name.csv")
