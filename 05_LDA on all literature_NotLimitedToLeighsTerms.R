@@ -35,7 +35,6 @@ publisher.word<-c("wiley","elsevier","john","springer","blackwell","ltd","author
 
 library(SnowballC) # stem word
 library(tidytext)
-
 #---
 # 3. n-gram
 #---
@@ -291,7 +290,7 @@ topic.size <-
 
 similarity.df %>%
   left_join(topic.size, by = c("topic" = "dom.topic")) %>%
-  ggplot(aes(x=V2, y=V3, size=n)) +
+  ggplot(aes(x=V1, y=V3, size=n)) +
   geom_point(alpha = 0.5, color = "black", shape = 21) +
   geom_text(aes(label = topic), size=4) +
   scale_size(range = c(5,15), name = paste0("Frequency of dominance","\n","              (articles)"))+
