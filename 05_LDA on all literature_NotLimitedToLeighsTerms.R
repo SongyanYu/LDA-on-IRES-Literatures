@@ -13,7 +13,7 @@ papers<-read.csv("../../data/scopus_intermittent-streams_filtered.csv")
 # remove articles without abstract
 papers.abs<-papers[!(papers$Abstract==""),]
 
-doc.info<-papers.abs[,c(1,2,3)]
+doc.info<-papers.abs[,c(1,2,3,4)]
 doc.info$document<-c(1:nrow(doc.info))
 doc.info$document<-as.character(doc.info$document)
 
@@ -33,8 +33,8 @@ text.df<-tibble(line=1:length(text),text)
 publisher.word<-c("wiley","elsevier","john","springer","blackwell","ltd","authors","author","taylor","francis",
                   "copyright","press","mdpi","licensee","basel","switzerland","sons") # to be removed
 
-library(tidytext)
 library(SnowballC) # stem word
+library(tidytext)
 
 #---
 # 3. n-gram
@@ -74,7 +74,7 @@ text.1.gram.short <-
   text.1.gram.short %>%
   anti_join(rare.word, by = "word")
 
-# number of unique terms (n = 1270)
+# number of unique terms (n = 1273)
 text.1.gram.short %>%
   group_by(word) %>%
   summarise(n = n())
@@ -120,7 +120,7 @@ text.2.gram.short <-
          t=(p_bi-p1*p2)/sqrt(p_bi*(1-p_bi)/n.y.y)) %>%
   filter(t > 1.6) %>%
   unite(bigram, word1, word2, sep = "_") %>%
-  select(line, bigram, n=n.x)
+  dplyr::select(line, bigram, n=n.x)
 
 # tri-gram
 text.3.gram <- 
@@ -165,7 +165,7 @@ text.3.gram.short <-
          t=(p_tri-p1*p2*p3)/sqrt(p_tri*(1-p_tri)/n))%>%
   filter(t > 1.4) %>%
   unite(trigram, word1, word2, word3, sep = "_") %>%
-  select(line, trigram, n=n.x)
+  dplyr::select(line, trigram, n=n.x)
 
 #---
 # 4. dtm and LDA modelling
@@ -191,7 +191,7 @@ inspect(all.dtm)
 
 # select the number of topics for LDA (n=2~50)
 library(ldatuning)
-seed.findtopicnumber <- c(2:30)
+seed.findtopicnumber <- 1
 result <- 
   FindTopicsNumber(all.dtm,
                    topics = seq(from=2,to=30,by=1),
@@ -199,9 +199,9 @@ result <-
                    method = "Gibbs",
                    mc.cores = 3,
                    verbose = TRUE,
-                   control = list(seed = seed.findtopicnumber[1]))
+                   control = list(seed = seed.findtopicnumber))
 
-png(filename = "../../Fig/05_LDA on all literature_NotLimitedToLeighsTerms_optimalTopicNumber.png")
+png(filename = "../../Fig/05_OptimalTopicNumber.png")
 FindTopicsNumber_plot(result)  # n=11 topics looks  optimal.
 dev.off()
 
@@ -211,37 +211,37 @@ library(topicmodels)
 seed.lda <- 11  # for reproducibility.
 
 n.topic <- 11
-ari.lda <- LDA(all.dtm,
+ires.lda <- LDA(all.dtm,
              k=n.topic,
              method = "Gibbs",
              control = list(seed=seed.lda))
 
 # word-topic probabilities
-ari.topics <- tidy(ari.lda, matrix="beta")
+ires.topics <- tidy(ires.lda, matrix="beta")
 
 library(ggplot2)
-ari.top.terms <-
-  ari.topics %>%
+ires.top.terms <-
+  ires.topics %>%
   group_by(topic) %>%
-  top_n(20, beta) %>%
+  top_n(10, beta) %>%  # can be changed to 20
   ungroup() %>%
   arrange(topic, -beta)
 
-ari.top.terms %>%
+ires.top.terms %>%
   mutate(term = reorder_within(term, beta, topic)) %>%
   ggplot(aes(term, beta, fill = factor(topic))) +
   geom_col(show.legend = FALSE) +
-  facet_wrap(~topic, scales = "free") +
+  facet_wrap(~topic, scales = "free", ncol = 3) +
   coord_flip() +
   scale_x_reordered() +
   labs(y = "probability")
-ggsave(paste0("../../Fig/05_LDA on all literature_NotLimitedToLeighsTerms_topic-term probabilities_n",n.topic,".png"), width=18, height = 11)
+ggsave(paste0("../../Fig/05_topic-term probabilities_n",n.topic,".png"), width=8, height = 8)
 
 #---
 # topic similarity
 #---
 library(reshape2)
-weight.matrix <- as.data.frame(acast(ari.topics, topic~term))
+weight.matrix <- as.data.frame(acast(ires.topics, topic~term))
 
 # Bray-Curtis distance (dissimilarity)
 library(vegan)
@@ -256,19 +256,19 @@ similarity.df <- as.data.frame(fits$points)
 similarity.df$topic <- c(1:n.topic)
 
 # document-topic probabilities
-ari.documents <- tidy(ari.lda, matrix="gamma")
+ires.documents <- tidy(ires.lda, matrix="gamma")
 
-ari.documents.wide <-
-  ari.documents %>%
+ires.documents.wide <-
+  ires.documents %>%
   pivot_wider(id_cols = document, names_from = topic, values_from = gamma) %>%
   left_join(., doc.info, by="document")
 
-write.csv(ari.documents.wide,
-          file = "../../R output/05_LDA on all literature_NotLimitedToLeighsTerms_TopicDocsGamma.csv",
+write.csv(ires.documents.wide,
+          file = "../../R output/05_TopicDocsGamma.csv",
           row.names = FALSE)
 
 relevant.docs <- 
-  ari.documents %>%
+  ires.documents %>%
   group_by(topic) %>%
   top_n(10,gamma) %>%
   ungroup() %>%
@@ -279,11 +279,11 @@ relevant.docs <-
   left_join(doc.info, by="document")
 
 write.csv(relevant.docs,
-          file = paste0("../../R output/05_LDA on all literature_NotLimitedToLeighsTerms_TopicDoc-Top10.csv"),
+          file = paste0("../../R output/05_TopicDoc_Top10.csv"),
           row.names = FALSE)
 
 topic.size <- 
-  ari.documents %>%
+  ires.documents %>%
   group_by(document) %>%
   summarise(dom.topic = match(max(gamma), gamma)) %>%
   group_by(dom.topic) %>%
@@ -298,47 +298,49 @@ similarity.df %>%
   xlab("NMDS1") +
   ylab("NMDS2") +
   theme_classic() 
-ggsave(filename = paste0("../../Fig/05_LDA on all literature_NotLimitedToLeighsTerms_TopicSimilarity.png"),width = 8,height = 4)
-
-#---
-# topic-document-gamma
-#---
-ari.documents.cast<-dcast(ari.documents,document~topic)
-topic.document.gamma<-left_join(ari.documents.cast,doc.info,by=c("document"))
-#write.csv(topic.document.gamma,file = "R output/topic-document-gamma_n15.csv",row.names = FALSE)
+ggsave(filename = paste0("../../Fig/05_TopicSimilarity.png"),width = 8,height = 4)
 
 #---
 # topic-term-beta
 #---
-ari.top.terms<-ari.topics%>%
-  group_by(topic)%>%
-  top_n(100,beta)%>%
-  ungroup()%>%
-  arrange(topic,-beta)
+ires.top.terms <-
+  ires.topics %>%
+  group_by(topic) %>%
+  top_n(100,beta) %>%
+  ungroup() %>%
+  arrange(topic, -beta)
 
-#write.csv(ari.top.terms,file = "R output/topic-term-beta-top100_n15.csv",row.names = FALSE)
+write.csv(ires.top.terms,file = "../../R output/05_TopicTermBeta-Top100.csv",row.names = FALSE)
 
 #---
 # topic popularity
 #---
-pub.by.year<-doc.info%>%
-  group_by(Year)%>%
-  summarise(n=n())
+pub.by.year <- 
+  doc.info %>%
+  group_by(Year) %>%
+  summarise(n = n())
 
 # document-topic probabilities
-ari.documents<-tidy(ari.lda,matrix="gamma")
+ires.documents <- tidy(ires.lda, matrix="gamma")
 
-text.df$year=doc.info$Year
-text.df$line<-as.character(text.df$line)
+text.df$year = doc.info$Year
+text.df$line <- as.character(text.df$line)
 
-topic.pop<-ari.documents%>%
-  left_join(.,text.df,by=c("document"="line"))%>%
-  group_by(year,topic)%>%
-  summarise(total.gamma=sum(gamma),n.doc=n())
+topic.pop <- 
+  ires.documents %>%
+  left_join(., text.df, by=c("document" = "line")) %>%
+  group_by(year, topic) %>%
+  summarise(total.gamma = sum(gamma), n.doc=n())
 
 library(tibble)
 
-# aggregate 1981-1994
+# aggregate 1966-1980
+topic.pop.1966_1980 <- 
+  topic.pop[c(1:154),] %>%
+  group_by(topic) %>%
+  summarise(gamma = sum(total.gamma), n=sum(n.doc), prop = gamma/n) %>%
+  add_column(year = "1966-1980") %>%
+  dplyr::select(year, topic, prop)
 
 topic.pop.1981_1994<-topic.pop[c(1:80),]%>%
   group_by(topic)%>%
@@ -439,7 +441,7 @@ topic.pop.all%>%
 # topic generality/specificity
 #---
 
-topic.weight<-ari.documents.cast%>%
+topic.weight<-ires.documents.cast%>%
   rename(tp01 = "1", tp02 = "2",tp03 = "3", tp04 = "4", tp05 = "5", 
          tp06 = "6", tp07 = "7", tp08 = "8", tp09 = "9", tp10 = "10")%>%
   mutate(max = pmax(tp01, tp02, tp03, tp04, tp05, tp06, tp07, tp08, tp09, tp10),
@@ -511,7 +513,7 @@ data.frame(slec.weight = colMeans(topic.weight)[1:10],
 # research gap analysis
 #---
 library(vegan)
-article.weight.matrix<-ari.documents%>%
+article.weight.matrix<-ires.documents%>%
   pivot_wider(id_cols = topic, names_from = document, values_from = gamma)%>%
   dplyr::select(-topic)
 
