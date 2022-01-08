@@ -5,10 +5,14 @@
 # Date created: 3/01/2022
 #---
 
+remove.packages("rlang")
+install.packages("rlang")
+
 #---
 # 1. read in Leigh literature
 #---
-papers<-read.csv("../../data/scopus_intermittent-streams_filtered.csv")
+papers<-readxl::read_xlsx("../../data/scopus_intermittent-streams_filtered.xlsx",
+                          sheet = "Sheet1")
 
 # remove articles without abstract
 papers.abs<-papers[!(papers$Abstract==""),]
@@ -33,8 +37,11 @@ text.df<-tibble(line=1:length(text),text)
 publisher.word<-c("wiley","elsevier","john","springer","blackwell","ltd","authors","author","taylor","francis",
                   "copyright","press","mdpi","licensee","basel","switzerland","sons") # to be removed
 
-library(SnowballC) # stem word
 library(tidytext)
+library(SnowballC) # stem word
+#install.packages("tidytext")
+
+
 #---
 # 3. n-gram
 #---
@@ -73,7 +80,7 @@ text.1.gram.short <-
   text.1.gram.short %>%
   anti_join(rare.word, by = "word")
 
-# number of unique terms (n = 1273)
+# number of unique terms (n = 1271)
 text.1.gram.short %>%
   group_by(word) %>%
   summarise(n = n())
@@ -201,15 +208,15 @@ result <-
                    control = list(seed = seed.findtopicnumber))
 
 png(filename = "../../Fig/05_OptimalTopicNumber.png")
-FindTopicsNumber_plot(result)  # n=11 topics looks  optimal.
+FindTopicsNumber_plot(result)  # n=14 topics looks  optimal.
 dev.off()
 
 
 # LDA modelling
 library(topicmodels)
-seed.lda <- 11  # for reproducibility.
+seed.lda <- 13  # for reproducibility.
 
-n.topic <- 11
+n.topic <- 13
 ires.lda <- LDA(all.dtm,
              k=n.topic,
              method = "Gibbs",
@@ -234,7 +241,7 @@ ires.top.terms %>%
   coord_flip() +
   scale_x_reordered() +
   labs(y = "probability")
-ggsave(paste0("../../Fig/05_topic-term probabilities_n",n.topic,".png"), width=8, height = 8)
+ggsave(paste0("../../Fig/05_topic-term probabilities_n",n.topic,".png"), width=8, height = 10)
 
 #---
 # topic similarity
@@ -290,7 +297,7 @@ topic.size <-
 
 similarity.df %>%
   left_join(topic.size, by = c("topic" = "dom.topic")) %>%
-  ggplot(aes(x=V1, y=V3, size=n)) +
+  ggplot(aes(x=V2, y=V3, size=n)) +
   geom_point(alpha = 0.5, color = "black", shape = 21) +
   geom_text(aes(label = topic), size=4) +
   scale_size(range = c(5,15), name = paste0("Frequency of dominance","\n","              (articles)"))+
@@ -333,122 +340,160 @@ topic.pop <-
 
 library(tibble)
 
-# aggregate 1966-1980
-topic.pop.1966_1980 <- 
-  topic.pop[c(1:154),] %>%
+# aggregate 1966-1975
+topic.pop.1966_1975 <- 
+  topic.pop[c(1:117),] %>%
   group_by(topic) %>%
   summarise(gamma = sum(total.gamma), n=sum(n.doc), prop = gamma/n) %>%
-  add_column(year = "1966-1980") %>%
+  add_column(year = "1966-1975") %>%
   dplyr::select(year, topic, prop)
 
-topic.pop.1981_1994<-topic.pop[c(1:80),]%>%
+topic.pop.1976_1980 <-
+  topic.pop[c(118:182),]%>%
   group_by(topic)%>%
   summarise(gamma=sum(total.gamma),n=sum(n.doc),prop=gamma/n)%>%
-  add_column(year="1981-1994")%>%
+  add_column(year="1976-1980")%>%
   dplyr::select(year,topic,prop)
 
-topic.pop.1995_1999<-topic.pop[c(81:130),]%>%
+topic.pop.1981_1985 <-
+  topic.pop[c(183:247),]%>%
   group_by(topic)%>%
   summarise(gamma=sum(total.gamma),n=sum(n.doc),prop=gamma/n)%>%
-  add_column(year="1995-1999")%>%
+  add_column(year="1981-1985")%>%
   dplyr::select(year,topic,prop)
 
-topic.pop.2000_2004<-topic.pop[c(131:180),]%>%
+topic.pop.1986_1990 <-
+  topic.pop[c(248:312),]%>%
   group_by(topic)%>%
   summarise(gamma=sum(total.gamma),n=sum(n.doc),prop=gamma/n)%>%
-  add_column(year="2000-2004")%>%
+  add_column(year="1986-1990")%>%
   dplyr::select(year,topic,prop)
 
-topic.pop.2005_2009<-topic.pop[c(181:230),]%>%
+topic.pop.1991_1995 <-
+  topic.pop[c(313:377),]%>%
   group_by(topic)%>%
   summarise(gamma=sum(total.gamma),n=sum(n.doc),prop=gamma/n)%>%
-  add_column(year="2005-2009")%>%
+  add_column(year="1991-1995")%>%
   dplyr::select(year,topic,prop)
 
-topic.pop.2010_2014<-topic.pop[c(231:280),]%>%
+topic.pop.1996_2000 <-
+  topic.pop[c(378:442),]%>%
   group_by(topic)%>%
   summarise(gamma=sum(total.gamma),n=sum(n.doc),prop=gamma/n)%>%
-  add_column(year="2010-2014")%>%
+  add_column(year="1996-2000")%>%
   dplyr::select(year,topic,prop)
 
-topic.pop.2015_2019<-topic.pop[c(281:330),]%>%
+topic.pop.2001_2005 <-
+  topic.pop[c(443:507),]%>%
   group_by(topic)%>%
   summarise(gamma=sum(total.gamma),n=sum(n.doc),prop=gamma/n)%>%
-  add_column(year="2014-2019")%>%
+  add_column(year="2001-2005")%>%
   dplyr::select(year,topic,prop)
 
-topic.pop.all<-bind_rows(topic.pop.1981_1994,
-                         topic.pop.1995_1999,
-                         topic.pop.2000_2004,
-                         topic.pop.2005_2009,
-                         topic.pop.2010_2014,
-                         topic.pop.2015_2019)
+topic.pop.2006_2010 <-
+  topic.pop[c(508:572),]%>%
+  group_by(topic)%>%
+  summarise(gamma=sum(total.gamma),n=sum(n.doc),prop=gamma/n)%>%
+  add_column(year="2006-2010")%>%
+  dplyr::select(year,topic,prop)
 
-topic.name<-read.csv("../../data/Topic names_all literature.csv")
-topic.pop.all<-left_join(topic.pop.all,topic.name,by=c("topic"="Topic"))
+topic.pop.2011_2015 <-
+  topic.pop[c(573:637),]%>%
+  group_by(topic)%>%
+  summarise(gamma=sum(total.gamma),n=sum(n.doc),prop=gamma/n)%>%
+  add_column(year="2011-2015")%>%
+  dplyr::select(year,topic,prop)
 
-topic.avg.prop<-topic.pop.all%>%
-  group_by(topic,Topic.name)%>%
-  summarise(avg.prop.change=mean(diff(prop))*100,
-            se=sd(prop)/sqrt(n()))%>%
-  arrange(avg.prop.change)%>%
-  mutate(group=ifelse(avg.prop.change>0.1,"Hot",ifelse(avg.prop.change<(-0.1),"Cold","Neutral")))
+topic.pop.2016_2021 <-
+  topic.pop[c(638:728),]%>%
+  group_by(topic)%>%
+  summarise(gamma=sum(total.gamma),n=sum(n.doc),prop=gamma/n)%>%
+  add_column(year="2016-2021")%>%
+  dplyr::select(year,topic,prop)
+
+topic.pop.all<-bind_rows(topic.pop.1966_1975,
+                         topic.pop.1976_1980,
+                         topic.pop.1981_1985,
+                         topic.pop.1986_1990,
+                         topic.pop.1991_1995,
+                         topic.pop.1996_2000,
+                         topic.pop.2001_2005,
+                         topic.pop.2006_2010,
+                         topic.pop.2011_2015,
+                         topic.pop.2016_2021)
+
+topic.name <- readxl::read_xlsx("../../data/Topic names_all literature.xlsx",
+                              sheet = "Sheet1")
+topic.pop.all <- left_join(topic.pop.all, topic.name,by = c("topic" = "Topic"))
+
+topic.avg.prop <-
+  topic.pop.all %>%
+  group_by(topic,Topic.name) %>%
+  summarise(avg.prop.change = mean(diff(prop))*100,
+            se = sd(prop)/sqrt(n())) %>%
+  arrange(avg.prop.change) %>%
+  mutate(group = ifelse(avg.prop.change > 0.1, "Hot", ifelse(avg.prop.change < (-0.1), "Cold", "Neutral")))
 
 # average change in prevalence (figure)
-topic.avg.prop%>%
-  ggplot(aes(x=factor(topic,levels=dput(as.character(topic))),
-             y=avg.prop.change,
-             color=avg.prop.change,
-             label=Topic.name))+
+topic.avg.prop %>%
+  ggplot(aes(x = factor(topic, levels = dput(as.character(topic))),
+             y = avg.prop.change,
+             color = avg.prop.change,
+             label = Topic.name)) +
   geom_hline(yintercept = 0,
-             linetype="dotted",
-             size=1.5)+
-  geom_point(show.legend = FALSE)+
-  geom_pointrange(aes(ymin=avg.prop.change-se*100,
-                      ymax=avg.prop.change+se*100),
-                  fatten=5,size=1.2,
-                  show.legend = FALSE)+
-  scale_color_gradient2(low="blue",high = "red",mid="grey",
-                        name="Average change in popularity")+
-  geom_text(aes(y=avg.prop.change-5),
-            size=5,
-            hjust=0.,
-            show.legend = FALSE)+
-  coord_flip()+
-  ylab("Average change in popularity (%)")+
-  theme_classic()+
-  theme(axis.line.y = element_blank(),axis.ticks.y = element_blank(),
-        axis.text.y = element_blank(),axis.title.y = element_blank())+
-  scale_y_continuous(position = "right")+
-  ggsave(filename = paste0("../../Fig/Avg topic prevalence_n",n.topic,".png"),width = 9.32,height = 5.73)
+             linetype = "dotted",
+             size = 1.5) +
+  geom_point(show.legend = FALSE) +
+  geom_pointrange(aes(ymin = avg.prop.change - se * 100,
+                      ymax = avg.prop.change + se * 100),
+                  fatten = 5, size = 1.2,
+                  show.legend = FALSE) +
+  scale_color_gradient2(low = "blue", high = "red", mid = "grey",
+                        name = "Average change in popularity") +
+  geom_text(aes(y = avg.prop.change-2),
+            size = 5,
+            hjust = 0.,
+            show.legend = FALSE) +
+  coord_flip() +
+  ylab("Average change in popularity (%)") +
+  theme_classic() +
+  theme(axis.line.y = element_blank(), axis.ticks.y = element_blank(),
+        axis.text.y = element_blank(), axis.title.y = element_blank()) +
+  scale_y_continuous(position = "right")
+ggsave(filename = paste0("../../Fig/05_TopicPopularity_n",n.topic,".png"), width = 10, height = 5.73)
 
 
 # topic trend over time (figure)
-topic.pop.all%>%
-  left_join(topic.avg.prop[,c(1,3,5)],by="topic")%>%
-  ggplot(aes(x=year,y=prop*100,group=Topic.name))+
-  geom_line(aes(color=avg.prop.change),size=1.2)+
-  scale_color_gradient2(low="blue",high = "red",mid = "grey",
-                        name="Average change in prevalence")+
-  facet_grid(factor(group,levels =c("Hot","Neutral","Cold"))~.)+
-  theme_classic()+
-  theme(panel.grid.major.y=element_line(linetype = "dotted",color="grey"))+
-  xlab("")+ylab("Topic prevalence (%)")+
-  ggsave(filename = paste0("../../Fig/Topic trend over time_n",n.topic,".png"),width = 9.32,height = 5.73)
+topic.pop.all %>%
+  left_join(topic.avg.prop[,c(1,3,5)], by = "topic") %>%
+  ggplot(aes(x = year,y = prop * 100, group = Topic.name)) +
+  geom_line(aes(color = avg.prop.change),size = 1.2) +
+  scale_color_gradient2(low = "blue", high = "red", mid = "grey",
+                        name = "Average change in prevalence") +
+  facet_grid(factor(group,levels = c("Hot", "Neutral", "Cold"))~.) +
+  theme_classic() +
+  theme(panel.grid.major.y = element_line(linetype = "dotted", color = "grey")) +
+  xlab("") +
+  ylab("Topic prevalence (%)")
+ggsave(filename = paste0("../../Fig/05_TopicTrend_n", n.topic, ".png"), width = 10, height = 5.73)
 
 #---
 # topic generality/specificity
 #---
 
-topic.weight<-ires.documents.cast%>%
+topic.weight <- 
+  ires.documents.wide %>%
   rename(tp01 = "1", tp02 = "2",tp03 = "3", tp04 = "4", tp05 = "5", 
-         tp06 = "6", tp07 = "7", tp08 = "8", tp09 = "9", tp10 = "10")%>%
-  mutate(max = pmax(tp01, tp02, tp03, tp04, tp05, tp06, tp07, tp08, tp09, tp10),
+         tp06 = "6", tp07 = "7", tp08 = "8", tp09 = "9", tp10 = "10",
+         tp11 = "11", tp12 = "12", tp13 = "13") %>%
+  mutate(max = pmax(tp01, tp02, tp03, tp04, tp05, tp06, tp07, tp08, tp09, tp10, tp11, tp12, tp13),
          slec01 = ifelse(tp01 < max, 0, 1), slec02 = ifelse(tp02 < max, 0, 1),
          slec03 = ifelse(tp03 < max, 0, 1), slec04 = ifelse(tp04 < max, 0, 1),
          slec05 = ifelse(tp05 < max, 0, 1), slec06 = ifelse(tp06 < max, 0, 1),
          slec07 = ifelse(tp07 < max, 0, 1), slec08 = ifelse(tp08 < max, 0, 1),
-         slec09 = ifelse(tp09 < max, 0, 1), slec10 = ifelse(tp10 < max, 0, 1))%>%
+         slec09 = ifelse(tp09 < max, 0, 1), slec10 = ifelse(tp10 < max, 0, 1),
+         slec11 = ifelse(tp11 < max, 0, 1), slec12 = ifelse(tp12 < max, 0, 1),
+         slec13 = ifelse(tp13 < max, 0, 1)) %>%
   transmute(tp01_slec_weight = mean(tp01[slec01 ==1]),
             tp02_slec_weight = mean(tp02[slec02 ==1]),
             tp03_slec_weight = mean(tp03[slec03 ==1]),
@@ -459,6 +504,9 @@ topic.weight<-ires.documents.cast%>%
             tp08_slec_weight = mean(tp08[slec08 ==1]),
             tp09_slec_weight = mean(tp09[slec09 ==1]),
             tp10_slec_weight = mean(tp10[slec10 ==1]),
+            tp11_slec_weight = mean(tp11[slec11 ==1]),
+            tp12_slec_weight = mean(tp12[slec12 ==1]),
+            tp13_slec_weight = mean(tp13[slec13 ==1]),
             tp01_unslec_weight = mean(tp01[slec01 ==0]),
             tp02_unslec_weight = mean(tp02[slec02 ==0]),
             tp03_unslec_weight = mean(tp03[slec03 ==0]),
@@ -468,56 +516,59 @@ topic.weight<-ires.documents.cast%>%
             tp07_unslec_weight = mean(tp07[slec07 ==0]),
             tp08_unslec_weight = mean(tp08[slec08 ==0]),
             tp09_unslec_weight = mean(tp09[slec09 ==0]),
-            tp10_unslec_weight = mean(tp10[slec10 ==0]))
+            tp10_unslec_weight = mean(tp10[slec10 ==0]),
+            tp11_unslec_weight = mean(tp11[slec11 ==0]),
+            tp12_unslec_weight = mean(tp12[slec12 ==0]),
+            tp13_unslec_weight = mean(tp13[slec13 ==0]),)
 
 library(ggplot2)
 library(stringr)
 
-topic.name<-read.csv("../../data/Topic names_all literature_topic-generality.csv")
 
-data.frame(slec.weight = colMeans(topic.weight)[1:10],
-           unslec.weight = colMeans(topic.weight[11:20]))%>%
-  mutate(tp_name = topic.name$Topic.name)%>%
-  ggplot(aes(x = unslec.weight, y = slec.weight))+
-  #  geom_point(shape = 10,size = 10)+
-  geom_text(aes(label = str_wrap(tp_name,15)),position = position_jitter())+
-  #  geom_text(aes(label = str_wrap(tp_name,15)),position = position_jitter(),vjust = 2.5,size = 4)+
-  annotate(geom = "text", x = 0.07, y = 0.327, label = "Specific topics",size = 5,fontface = "italic")+
-  annotate(geom = "text", x = 0.0825, y = 0.28, label = "General topics",size = 5,fontface = "italic")+
-  xlab("Mean weight (unselected articles)")+
-  ylab("Mean weight (selected articles)")+
-  theme_bw()+
-  ylim(c(0.265, 0.35))+
-  xlim(c(0.068, 0.086))+
-  ggsave(filename = "../../Fig/Topic generality.png",width = 7,height = 5)
+topic.name.v <- sapply(topic.name$Topic.name, FUN = function(x){
+  strsplit(x, split = "\\. ")[[1]][2]
+})
 
-data.frame(slec.weight = colMeans(topic.weight)[1:10],
-           unslec.weight = colMeans(topic.weight[11:20]))%>%
-  mutate(tp_name = topic.name$Topic.name)%>%
-  ggplot(aes(x = unslec.weight, y = slec.weight))+
-  #  geom_point(shape = 10,size = 10)+
-  geom_text(aes(label = str_wrap(tp_name,15)),position = position_jitter())+
-  #  geom_text(aes(label = str_wrap(tp_name,15)),position = position_jitter(),vjust = 2.5,size = 4)+
-  annotate(geom = "text", x = 0.07, y = 0.327, label = "Specific topics",size = 5,fontface = "italic")+
-  annotate(geom = "text", x = 0.0825, y = 0.28, label = "General topics",size = 5,fontface = "italic")+
-  xlab("Mean weight (unselected articles)")+
-  ylab("Mean weight (selected articles)")+
-  theme_bw()+
-  ylim(c(0.265, 0.35))+
-  xlim(c(0.068, 0.086))+
-  ggsave(filename = "../../Fig/Topic generality_inlet.png",width = 16,height = 8)
+data.frame(slec.weight = colMeans(topic.weight)[1:13],
+           unslec.weight = colMeans(topic.weight[14:26])) %>%
+  mutate(tp_name = topic.name.v) %>%
+  ggplot(aes(x = unslec.weight, y = slec.weight)) +
+  geom_text(aes(label = str_wrap(tp_name, 40)),position = position_jitter()) +
+  annotate(geom = "text", x = 0.056, y = 0.28, label = "Specific topics", size = 5, fontface = "italic") +
+  annotate(geom = "text", x = 0.065, y = 0.25, label = "General topics", size = 5, fontface = "italic") +
+  xlab("Mean weight (unselected articles)") +
+  ylab("Mean weight (selected articles)") +
+  theme_bw() +
+  xlim(c(0.0545, 0.0685)) +
+  ylim(c(0.235, 0.305))
+ggsave(filename = "../../Fig/05_TopicGenerality.png",width = 7,height = 4)
+
+data.frame(slec.weight = colMeans(topic.weight)[1:13],
+           unslec.weight = colMeans(topic.weight[14:26])) %>%
+  mutate(tp_name = topic.name.v) %>%
+  ggplot(aes(x = unslec.weight, y = slec.weight)) +
+  geom_text(aes(label = str_wrap(tp_name, 40)),position = position_jitter()) +
+  annotate(geom = "text", x = 0.056, y = 0.28, label = "Specific topics", size = 5, fontface = "italic") +
+  annotate(geom = "text", x = 0.065, y = 0.25, label = "General topics", size = 5, fontface = "italic") +
+  xlab("Mean weight (unselected articles)") +
+  ylab("Mean weight (selected articles)") +
+  theme_bw() +
+  xlim(c(0.0545, 0.0682)) +
+  ylim(c(0.235, 0.305))
+ggsave(filename = "../../Fig/05_TopicGenerality_inset.png",width = 8,height = 10)
 
 
 #---
 # research gap analysis
 #---
 library(vegan)
-article.weight.matrix<-ires.documents%>%
-  pivot_wider(id_cols = topic, names_from = document, values_from = gamma)%>%
+article.weight.matrix <-
+  ires.documents %>%
+  pivot_wider(id_cols = topic, names_from = document, values_from = gamma) %>%
   dplyr::select(-topic)
 
 article.topic.dis<-vegdist(article.weight.matrix,method = "bray")
 
 gap.dist<-topic.dis * article.topic.dis
-
+gap.dist
 # then copy the gap.dist to an excel file for visualisation
