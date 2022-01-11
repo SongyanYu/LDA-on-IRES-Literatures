@@ -188,12 +188,12 @@ all.term<-rbind(text.1.gram.short,
 length(unique(all.term$term))
 sum(all.term$n)
 
+#library(tm)
 all.dtm <- 
   all.term %>%
   cast_dtm(document = line, term = term, value = n)
 
-library(tm)
-inspect(all.dtm)
+tm::inspect(all.dtm)
 
 # select the number of topics for LDA (n=2~50)
 library(ldatuning)
@@ -208,7 +208,7 @@ result <-
                    control = list(seed = seed.findtopicnumber))
 
 png(filename = "../../Fig/05_OptimalTopicNumber.png")
-FindTopicsNumber_plot(result)  # n=14 topics looks  optimal.
+FindTopicsNumber_plot(result)  # n=13 topics looks  optimal.
 dev.off()
 
 
