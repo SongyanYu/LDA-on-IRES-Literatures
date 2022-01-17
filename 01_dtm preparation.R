@@ -164,8 +164,8 @@ leigh.term<-rbind(text.1.gram.short,
 length(unique(leigh.term$term))
 sum(leigh.term$n)
 
-leigh.dtm<-leigh.term%>%
+leigh.dtm <-
+  leigh.term%>%
   cast_dtm(document = line,term = term,value=n)
 
-library(tm)
-inspect(leigh.dtm)
+tm::inspect(leigh.dtm)
