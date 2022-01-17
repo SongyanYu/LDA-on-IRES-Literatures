@@ -25,68 +25,37 @@ top_topic_words<-leigh.top.terms%>%
   group_by(topic)%>%
   summarise(Top_topic_words=paste(term,collapse = ", "))
 
-write.csv(top_topic_words,"../../R output/Top topic words_n4.csv",row.names = FALSE)
+write.csv(top_topic_words,"../../R output/02_TopTopicWords_n4.csv",row.names = FALSE)
 
-leigh.top.terms%>%
-  mutate(term=reorder_within(term,beta,topic))%>%
-  ggplot(aes(term,beta,fill=factor(topic)))+
-  geom_col(show.legend = FALSE)+
-  facet_wrap(~topic,scales = "free")+
-  coord_flip()+
-  scale_x_reordered()+
-  labs(y="probability")+
-  ggsave(paste0("../../Fig/topic-term probabilities_n",n.topic,".png"),width=18,height = 11)
+leigh.top.terms %>%
+  mutate(term = reorder_within(term, beta, topic)) %>%
+  ggplot(aes(term,beta,fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~topic, scales = "free") +
+  coord_flip() +
+  scale_x_reordered() +
+  labs(y = "probability")
+ggsave(paste0("../../Fig/02_TopicTermProbabilities_n",n.topic,".png"),width=8,height = 7)
+
 
 #---
-# topic similarity
+# article compositon between the two group of 4 topics (LDA vs. Leigh)
 #---
-#library(reshape2)
-#weight.matrix<-as.data.frame(acast(leigh.topics,topic~term))
 
-# Bray-Curtis distance (dissimilarity)
-#library(vegan)
-#topic.dis<-vegdist(weight.matrix,method = "bray")
-
-# non-metric multidimentional scaling
-#library(MASS)
-#fits<-isoMDS(topic.dis,k=2)
-
-#library(ggplot2)
-#similarity.df<-as.data.frame(fits$points)
-#similarity.df$topic<-c(1:n.topic)
-
-# document-topic probabilities
-#leigh.documents<-tidy(leigh.lda,matrix="gamma")
-
-#relevant.docs<-leigh.documents%>%
-#  group_by(topic)%>%
-#  top_n(10,gamma)%>%
-#  ungroup()%>%
-#  arrange(topic,-gamma)
-
-#relevant.docs<-relevant.docs%>%
-#  left_join(doc.info,by="document")
-
-#write.csv(relevant.docs,
-#          file = paste0("R output/topic-documents_n",n.topic,".csv"),
-#          row.names = FALSE)
-
-#topic.size<-leigh.documents%>%
-#  group_by(document)%>%
-#  summarise(dom.topic=match(max(gamma),gamma))%>%
-#  group_by(dom.topic)%>%
-#  summarise(n=n())
-
-#similarity.df%>%
-#  left_join(topic.size,by=c("topic"="dom.topic"))%>%
-#  ggplot(aes(x=V1,y=V2,size=n))+
-#  geom_point(alpha=0.5,color="black",shape=21)+
-#  geom_text(aes(label=topic),size=4)+
-#  scale_size(range = c(5,15),name=paste0("Frequency of dominance","\n","              (articles)"))+
-#  xlab("NMDS1")+ylab("NMDS2")+
-#  theme_classic()+
-#  ggsave(filename = paste0("../../Fig/Topic similarity_n",n.topic,".png"),width = 8,height = 4)
-
+dom.topic.doc <-
+  tidy(leigh.lda,matrix="gamma") %>%
+  group_by(document) %>%
+  summarise(dom.topic = match(max(gamma), gamma)) %>%
+  mutate(dom.topic = factor(dom.topic, levels = c("1","2","3","4"),
+                            labels = c("Invertebrate", "Biogeochemistry", "Fish", "Assessment"))) %>%
+  left_join(., doc.info, by = "document") %>%
+  select(1,2,3) %>%
+  rowwise() %>%
+  mutate(consist = ifelse(dom.topic %in% (strsplit(Associated.search.es.,split = ", ")[[1]]), 1, 0)) %>%
+  group_by(dom.topic) %>%
+  summarise(n = n(),
+            consist = sum(consist),
+            prop = consist/n)
 
 
 
