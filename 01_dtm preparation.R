@@ -12,7 +12,7 @@ papers<-read.csv("../../data/Literatures in Leigh et al 2016.csv",skip = 1)
 # remove articles without abstract
 papers.abs<-papers[!(papers$Abstract==""),]
 
-doc.info<-papers.abs[,c(3,4,5)]
+doc.info<-papers.abs[,c(1,3,4,5)]
 doc.info$document<-c(1:nrow(doc.info))
 doc.info$document<-as.character(doc.info$document)
 
