@@ -39,8 +39,6 @@ publisher.word<-c("wiley","elsevier","john","springer","blackwell","ltd","author
 
 library(tidytext)
 library(SnowballC) # stem word
-#install.packages("tidytext")
-
 
 #---
 # 3. n-gram
@@ -208,19 +206,18 @@ result <-
                    control = list(seed = seed.findtopicnumber))
 
 png(filename = "../../Fig/05_OptimalTopicNumber.png")
-FindTopicsNumber_plot(result)  # n=13 topics looks  optimal.
+FindTopicsNumber_plot(result)  # n=8 topics looks  optimal.
 dev.off()
 
 
 # LDA modelling
 library(topicmodels)
-seed.lda <- 13  # for reproducibility.
 
-n.topic <- 13
+n.topic <-13
 ires.lda <- LDA(all.dtm,
              k=n.topic,
              method = "Gibbs",
-             control = list(seed=seed.lda))
+             control = list(seed = 13))
 
 # word-topic probabilities
 ires.topics <- tidy(ires.lda, matrix="beta")
@@ -232,6 +229,13 @@ ires.top.terms <-
   top_n(10, beta) %>%  # can be changed to 20
   ungroup() %>%
   arrange(topic, -beta)
+
+top_topic_words <-
+  ires.top.terms %>%
+  group_by(topic) %>%
+  summarise(Top_topic_words = paste(term, collapse = ", "))
+write.csv(top_topic_words, paste0("../../R output/05_TopTopicWords_n",n.topic,".csv"), row.names = FALSE)
+
 
 ires.top.terms %>%
   mutate(term = reorder_within(term, beta, topic)) %>%
