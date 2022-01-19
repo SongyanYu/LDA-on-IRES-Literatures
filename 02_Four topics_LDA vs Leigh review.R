@@ -15,17 +15,19 @@ leigh.lda<-LDA(leigh.dtm,k=n.topic,method = "Gibbs",control = list(seed=1))
 leigh.topics<-tidy(leigh.lda,matrix="beta")
 
 library(ggplot2)
-leigh.top.terms<-leigh.topics%>%
-  group_by(topic)%>%
-  top_n(20,beta)%>%
-  ungroup()%>%
-  arrange(topic,-beta)
+leigh.top.terms <-
+  leigh.topics %>%
+  group_by(topic) %>%
+  top_n(20, beta) %>%
+  ungroup() %>%
+  arrange(topic, -beta)
 
-top_topic_words<-leigh.top.terms%>%
-  group_by(topic)%>%
-  summarise(Top_topic_words=paste(term,collapse = ", "))
+top_topic_words <-
+  leigh.top.terms %>%
+  group_by(topic) %>%
+  summarise(Top_topic_words = paste(term, collapse = ", "))
 
-write.csv(top_topic_words,"../../R output/02_TopTopicWords_n4.csv",row.names = FALSE)
+write.csv(top_topic_words, "../../R output/02_TopTopicWords_n4.csv", row.names = FALSE)
 
 leigh.top.terms %>%
   mutate(term = reorder_within(term, beta, topic)) %>%
