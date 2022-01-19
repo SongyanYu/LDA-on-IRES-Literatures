@@ -206,9 +206,8 @@ result <-
                    control = list(seed = seed.findtopicnumber))
 
 png(filename = "../../Fig/05_OptimalTopicNumber.png")
-FindTopicsNumber_plot(result)  # n=8 topics looks  optimal.
+FindTopicsNumber_plot(result)  # n=13 topics looks  optimal.
 dev.off()
-
 
 # LDA modelling
 library(topicmodels)
