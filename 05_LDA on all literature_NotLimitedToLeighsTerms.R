@@ -9,7 +9,7 @@ remove.packages("rlang")
 install.packages("rlang")
 
 #---
-# 1. read in Leigh literature
+# 1. read in the second corpus
 #---
 papers<-readxl::read_xlsx("../../data/scopus_intermittent-streams_filtered.xlsx",
                           sheet = "Sheet1")
@@ -110,7 +110,7 @@ text.2.gram <-
   unite(bigram,word1,word2,sep="_") %>%
   count(line, bigram,sort=TRUE)
 
-# remain only those bigrams that occur more than expected by chance under a significant value of p<.05
+# retain only those bigrams that occur more than expected by chance under a significant value of p<.05
 # Student's t test (degree of freedom?)
 text.2.gram.short <-
   text.2.gram %>%
@@ -288,7 +288,7 @@ relevant.docs <-
   left_join(doc.info, by="document")
 
 write.csv(relevant.docs,
-          file = paste0("../../R output/05_TopicDoc_Top10.csv"),
+          file = paste0("../../R output/05_TopicDoc_Top13.csv"),
           row.names = FALSE)
 
 topic.size <- 
@@ -572,6 +572,12 @@ article.weight.matrix <-
 
 article.topic.dis<-vegdist(article.weight.matrix,method = "bray")
 
-gap.dist<-topic.dis * article.topic.dis
+max(article.topic.dis)
+min(article.topic.dis)
+
+article.topic.dis.scaled <- (article.topic.dis - min(article.topic.dis))/(max(article.topic.dis) - min(article.topic.dis))
+topic.dis.scaled <- (topic.dis - min(topic.dis))/(max(topic.dis) - min(topic.dis))
+
+gap.dist<-topic.dis.scaled * article.topic.dis.scaled
 gap.dist
 # then copy the gap.dist to an excel file for visualisation
