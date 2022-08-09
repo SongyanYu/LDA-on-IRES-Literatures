@@ -279,7 +279,7 @@ write.csv(ires.documents.wide,
 relevant.docs <- 
   ires.documents %>%
   group_by(topic) %>%
-  top_n(10,gamma) %>%
+  top_n(20,gamma) %>%
   ungroup() %>%
   arrange(topic, -gamma)
 
@@ -288,7 +288,7 @@ relevant.docs <-
   left_join(doc.info, by="document")
 
 write.csv(relevant.docs,
-          file = paste0("../../R output/05_TopicDoc_Top13.csv"),
+          file = paste0("../../R output/05_TopicDoc_Top20.csv"),
           row.names = FALSE)
 
 topic.size <- 
@@ -303,11 +303,12 @@ similarity.df %>%
   ggplot(aes(x=V2, y=V3, size=n)) +
   geom_point(alpha = 0.5, color = "black", shape = 21) +
   geom_text(aes(label = topic), size=4) +
-  scale_size(range = c(5,15), name = paste0("Frequency of dominance","\n","              (articles)"))+
+  scale_size(range = c(5, 20), name = paste0("Frequency of dominance","\n","              (articles)"))+
   xlab("NMDS1") +
   ylab("NMDS2") +
-  theme_classic() 
-ggsave(filename = paste0("../../Fig/05_TopicSimilarity.png"),width = 8,height = 4)
+  theme_classic() +
+  theme(legend.position = 'bottom')
+ggsave(filename = paste0("../../Fig/05_TopicSimilarity.png"),width = 6,height = 5)
 
 #---
 # topic-term-beta
@@ -535,30 +536,36 @@ topic.name.v <- sapply(topic.name$Topic.name, FUN = function(x){
 data.frame(slec.weight = colMeans(topic.weight)[1:13],
            unslec.weight = colMeans(topic.weight[14:26])) %>%
   mutate(tp_name = topic.name.v) %>%
+  mutate(tp_no = as.character(c(1:13))) %>%
   ggplot(aes(x = unslec.weight, y = slec.weight)) +
-  geom_text(aes(label = str_wrap(tp_name, 40)),position = position_jitter()) +
+  geom_point(alpha = 2, color = 'black', shape = 21, size = 10) +
+  geom_text(aes(label = str_wrap(tp_no, 20)),position = position_jitter()) +
   annotate(geom = "text", x = 0.056, y = 0.28, label = "Specific topics", size = 5, fontface = "italic") +
   annotate(geom = "text", x = 0.065, y = 0.25, label = "General topics", size = 5, fontface = "italic") +
   xlab("Mean weight (unselected articles)") +
   ylab("Mean weight (selected articles)") +
-  theme_bw() +
+  theme_classic() +
   xlim(c(0.0545, 0.0685)) +
-  ylim(c(0.235, 0.305))
-ggsave(filename = "../../Fig/05_TopicGenerality.png",width = 7,height = 4)
+  ylim(c(0.235, 0.305)) +
+  theme(legend.position = 'none') +
+  annotate(geom = 'text', x = 0.066, y = 0.30, label = strsplit('1-Fish ecology/2-Water pollution/3-Hydrological modelling', split = '/'), size = 3)
+ggsave(filename = "../../Fig/05_TopicGenerality.png",width = 6,height = 4)
 
 data.frame(slec.weight = colMeans(topic.weight)[1:13],
            unslec.weight = colMeans(topic.weight[14:26])) %>%
   mutate(tp_name = topic.name.v) %>%
   ggplot(aes(x = unslec.weight, y = slec.weight)) +
-  geom_text(aes(label = str_wrap(tp_name, 40)),position = position_jitter()) +
+  geom_text(aes(label = str_wrap(tp_name, 20)), position = position_jitter()) +
   annotate(geom = "text", x = 0.056, y = 0.28, label = "Specific topics", size = 5, fontface = "italic") +
   annotate(geom = "text", x = 0.065, y = 0.25, label = "General topics", size = 5, fontface = "italic") +
   xlab("Mean weight (unselected articles)") +
   ylab("Mean weight (selected articles)") +
-  theme_bw() +
-  xlim(c(0.0545, 0.0682)) +
-  ylim(c(0.235, 0.305))
-ggsave(filename = "../../Fig/05_TopicGenerality_inset.png",width = 8,height = 10)
+  theme_classic() +
+#  xlim(c(0.0545, 0.0682)) +
+#  ylim(c(0.235, 0.305))
+  xlim(c(0.0545, 0.066)) +
+  ylim(c(0.259, 0.275))
+ggsave(filename = "../../Fig/05_TopicGenerality_inset.png",width = 5, height = 5)
 
 
 #---
