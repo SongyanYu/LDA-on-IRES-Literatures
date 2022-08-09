@@ -547,25 +547,8 @@ data.frame(slec.weight = colMeans(topic.weight)[1:13],
   theme_classic() +
   xlim(c(0.0545, 0.0685)) +
   ylim(c(0.235, 0.305)) +
-  theme(legend.position = 'none') +
-  annotate(geom = 'text', x = 0.066, y = 0.30, label = strsplit('1-Fish ecology/2-Water pollution/3-Hydrological modelling', split = '/'), size = 3)
+  theme(legend.position = 'none')
 ggsave(filename = "../../Fig/05_TopicGenerality.png",width = 6,height = 4)
-
-#data.frame(slec.weight = colMeans(topic.weight)[1:13],
-#           unslec.weight = colMeans(topic.weight[14:26])) %>%
-#  mutate(tp_name = topic.name.v) %>%
-#  ggplot(aes(x = unslec.weight, y = slec.weight)) +
-#  geom_text(aes(label = str_wrap(tp_name, 20)), position = position_jitter()) +
-#  annotate(geom = "text", x = 0.056, y = 0.28, label = "Specific topics", size = 5, fontface = "italic") +
-#  annotate(geom = "text", x = 0.065, y = 0.25, label = "General topics", size = 5, fontface = "italic") +
-#  xlab("Mean weight (unselected articles)") +
-#  ylab("Mean weight (selected articles)") +
-#  theme_classic() +
-#  xlim(c(0.0545, 0.0682)) +
-#  ylim(c(0.235, 0.305))
-#  xlim(c(0.0545, 0.066)) +
-#  ylim(c(0.259, 0.275))
-#ggsave(filename = "../../Fig/05_TopicGenerality_inset.png",width = 5, height = 5)
 
 
 #---
