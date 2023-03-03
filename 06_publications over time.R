@@ -76,7 +76,11 @@ read.csv('../../R output/05_TopicDocsGamma.csv') %>%
   ylab('Number of publications') +
   xlab('') +
   labs(fill = 'Topic') +
-  scale_fill_viridis(discrete = TRUE) +
+  scale_fill_manual(values = c('#ca3900', '#df5c05', '#e3b425',
+                               '#e3eb00', '#b2b400', '#76a610',
+                               '#3e550c', '#099991', '#0b5487',
+                               '#092336', '#670d3c', '#ff8e62',
+                               '#dfd1ae')) +
   theme(legend.position = c(0.1, 0.55))
 ggsave(filename = '../../Fig/06_publication_aggregate_topic.png',
        width = 7.5, height = 5) 
