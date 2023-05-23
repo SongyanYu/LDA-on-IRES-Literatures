@@ -39,6 +39,18 @@ leigh.top.terms %>%
   labs(y = "probability")
 ggsave(paste0("../../Fig/02_TopicTermProbabilities_n",n.topic,".png"),width=8,height = 7)
 
+# document-topic probabilities
+top.documents <- tidy(leigh.lda, matrix="gamma")
+
+relevant.docs <- 
+  top.documents %>%
+  group_by(topic) %>%
+  top_n(20,gamma) %>%
+  ungroup() %>%
+  arrange(topic, -gamma)%>%
+  left_join(., doc.info, by="document")
+
+write.csv(relevant.docs, "../../R output/02_TopDocs_n4.csv", row.names = FALSE)
 
 #---
 # article compositon between the two group of 4 topics (LDA vs. Leigh)

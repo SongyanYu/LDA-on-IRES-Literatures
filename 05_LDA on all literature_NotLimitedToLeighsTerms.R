@@ -225,7 +225,7 @@ library(ggplot2)
 ires.top.terms <-
   ires.topics %>%
   group_by(topic) %>%
-  top_n(10, beta) %>%  # can be changed to 20
+  top_n(20, beta) %>%  # can be changed to 20
   ungroup() %>%
   arrange(topic, -beta)
 
@@ -542,8 +542,8 @@ data.frame(slec.weight = colMeans(topic.weight)[1:13],
   geom_text(aes(label = str_wrap(tp_no, 20)),position = position_jitter()) +
   annotate(geom = "text", x = 0.056, y = 0.28, label = "Specific topics", size = 5, fontface = "italic") +
   annotate(geom = "text", x = 0.065, y = 0.25, label = "General topics", size = 5, fontface = "italic") +
-  xlab("Mean weight (unselected articles)") +
-  ylab("Mean weight (selected articles)") +
+  xlab("Mean topic weight in non-dominant articles") +
+  ylab("Mean topic weight in dominant articles") +
   theme_classic() +
   xlim(c(0.0545, 0.0685)) +
   ylim(c(0.235, 0.305)) +
