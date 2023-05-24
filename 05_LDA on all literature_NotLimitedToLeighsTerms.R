@@ -344,87 +344,88 @@ topic.pop <-
 
 library(tibble)
 
-# aggregate 1966-1975
-topic.pop.1966_1975 <- 
-  topic.pop[c(1:117),] %>%
+# aggregate 1966-1976
+topic.pop.1966_1976 <- 
+#  topic.pop[c(1:117),] %>%
+  topic.pop[c(1:130),] %>%
   group_by(topic) %>%
   summarise(gamma = sum(total.gamma), n=sum(n.doc), prop = gamma/n) %>%
-  add_column(year = "1966-1975") %>%
+  add_column(year = "1966-1976") %>%
   dplyr::select(year, topic, prop)
 
-topic.pop.1976_1980 <-
-  topic.pop[c(118:182),]%>%
+topic.pop.1977_1981 <-
+  topic.pop[c(131:208),]%>%
   group_by(topic)%>%
   summarise(gamma=sum(total.gamma),n=sum(n.doc),prop=gamma/n)%>%
-  add_column(year="1976-1980")%>%
+  add_column(year="1977-1981")%>%
   dplyr::select(year,topic,prop)
 
-topic.pop.1981_1985 <-
-  topic.pop[c(183:247),]%>%
+topic.pop.1982_1986 <-
+  topic.pop[c(209:260),]%>%
   group_by(topic)%>%
   summarise(gamma=sum(total.gamma),n=sum(n.doc),prop=gamma/n)%>%
-  add_column(year="1981-1985")%>%
+  add_column(year="1982-1986")%>%
   dplyr::select(year,topic,prop)
 
-topic.pop.1986_1990 <-
-  topic.pop[c(248:312),]%>%
+topic.pop.1987_1991 <-
+  topic.pop[c(261:325),]%>%
   group_by(topic)%>%
   summarise(gamma=sum(total.gamma),n=sum(n.doc),prop=gamma/n)%>%
-  add_column(year="1986-1990")%>%
+  add_column(year="1987-1991")%>%
   dplyr::select(year,topic,prop)
 
-topic.pop.1991_1995 <-
-  topic.pop[c(313:377),]%>%
+topic.pop.1992_1996 <-
+  topic.pop[c(326:390),]%>%
   group_by(topic)%>%
   summarise(gamma=sum(total.gamma),n=sum(n.doc),prop=gamma/n)%>%
-  add_column(year="1991-1995")%>%
+  add_column(year="1992-1996")%>%
   dplyr::select(year,topic,prop)
 
-topic.pop.1996_2000 <-
-  topic.pop[c(378:442),]%>%
+topic.pop.1997_2001 <-
+  topic.pop[c(391:455),]%>%
   group_by(topic)%>%
   summarise(gamma=sum(total.gamma),n=sum(n.doc),prop=gamma/n)%>%
-  add_column(year="1996-2000")%>%
+  add_column(year="1997-2001")%>%
   dplyr::select(year,topic,prop)
 
-topic.pop.2001_2005 <-
-  topic.pop[c(443:507),]%>%
+topic.pop.2002_2006 <-
+  topic.pop[c(456:520),]%>%
   group_by(topic)%>%
   summarise(gamma=sum(total.gamma),n=sum(n.doc),prop=gamma/n)%>%
-  add_column(year="2001-2005")%>%
+  add_column(year="2002-2006")%>%
   dplyr::select(year,topic,prop)
 
-topic.pop.2006_2010 <-
-  topic.pop[c(508:572),]%>%
+topic.pop.2007_2011 <-
+  topic.pop[c(521:585),]%>%
   group_by(topic)%>%
   summarise(gamma=sum(total.gamma),n=sum(n.doc),prop=gamma/n)%>%
-  add_column(year="2006-2010")%>%
+  add_column(year="2007-2011")%>%
   dplyr::select(year,topic,prop)
 
-topic.pop.2011_2015 <-
-  topic.pop[c(573:637),]%>%
+topic.pop.2012_2016 <-
+  topic.pop[c(586:650),]%>%
   group_by(topic)%>%
   summarise(gamma=sum(total.gamma),n=sum(n.doc),prop=gamma/n)%>%
-  add_column(year="2011-2015")%>%
+  add_column(year="2012-2016")%>%
   dplyr::select(year,topic,prop)
 
-topic.pop.2016_2021 <-
-  topic.pop[c(638:728),]%>%
+topic.pop.2017_2021 <-
+  topic.pop[c(651:728),]%>%
   group_by(topic)%>%
   summarise(gamma=sum(total.gamma),n=sum(n.doc),prop=gamma/n)%>%
-  add_column(year="2016-2021")%>%
+  add_column(year="2017-2021")%>%
   dplyr::select(year,topic,prop)
 
-topic.pop.all<-bind_rows(topic.pop.1966_1975,
-                         topic.pop.1976_1980,
-                         topic.pop.1981_1985,
-                         topic.pop.1986_1990,
-                         topic.pop.1991_1995,
-                         topic.pop.1996_2000,
-                         topic.pop.2001_2005,
-                         topic.pop.2006_2010,
-                         topic.pop.2011_2015,
-                         topic.pop.2016_2021)
+topic.pop.all<-bind_rows(topic.pop.1966_1976,
+                         topic.pop.1977_1981,
+                         topic.pop.1982_1986,
+                         topic.pop.1987_1991,
+                         topic.pop.1992_1996,
+                         topic.pop.1997_2001,
+                         topic.pop.2002_2006,
+                         topic.pop.2007_2011,
+                         topic.pop.2012_2016,
+                         topic.pop.2017_2021)
 
 topic.name <- readxl::read_xlsx("../../data/Topic names_all literature.xlsx",
                               sheet = "Sheet1")
